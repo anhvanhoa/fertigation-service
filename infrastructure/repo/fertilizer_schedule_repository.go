@@ -157,35 +157,9 @@ func (r *fertilizerScheduleRepository) List(ctx context.Context, filter *entity.
 		return nil, 0, err
 	}
 
-	// Convert to response format
-	var responses []entity.FertilizerScheduleResponse
-	for _, schedule := range schedules {
-		responses = append(responses, entity.FertilizerScheduleResponse{
-			ID:                  schedule.ID,
-			PlantingCycleID:     schedule.PlantingCycleID,
-			FertilizerTypeID:    schedule.FertilizerTypeID,
-			ApplicationDate:     schedule.ApplicationDate,
-			Dosage:              schedule.Dosage,
-			Unit:                schedule.Unit,
-			ApplicationMethod:   schedule.ApplicationMethod,
-			GrowthStage:         schedule.GrowthStage,
-			WeatherConditions:   schedule.WeatherConditions,
-			SoilConditions:      schedule.SoilConditions,
-			IsCompleted:         schedule.IsCompleted,
-			CompletedDate:       schedule.CompletedDate,
-			ActualDosage:        schedule.ActualDosage,
-			EffectivenessRating: schedule.EffectivenessRating,
-			Notes:               schedule.Notes,
-			CreatedBy:           schedule.CreatedBy,
-			CreatedAt:           schedule.CreatedAt,
-			UpdatedAt:           schedule.UpdatedAt,
-		})
-	}
-
 	return schedules, int64(total), nil
 }
 
-// GetByPlantingCycleID retrieves fertilizer schedules by planting cycle ID
 func (r *fertilizerScheduleRepository) GetByPlantingCycleID(ctx context.Context, plantingCycleID string, filter common.Pagination) ([]*entity.FertilizerSchedule, int64, error) {
 	var schedules []*entity.FertilizerSchedule
 	q := r.db.ModelContext(ctx, &schedules).Where("planting_cycle_id = ?", plantingCycleID)

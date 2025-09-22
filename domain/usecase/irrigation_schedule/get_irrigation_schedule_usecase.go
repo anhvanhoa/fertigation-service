@@ -6,13 +6,15 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// GetIrrigationScheduleUsecase handles retrieving irrigation schedules
+type GetIrrigationScheduleUsecaseI interface {
+	Execute(ctx context.Context, id string) (*entity.IrrigationSchedule, error)
+}
+
 type GetIrrigationScheduleUsecase struct {
 	irrigationScheduleRepo repository.IrrigationScheduleRepository
 }
 
-// NewGetIrrigationScheduleUsecase creates a new instance of GetIrrigationScheduleUsecase
-func NewGetIrrigationScheduleUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository) *GetIrrigationScheduleUsecase {
+func NewGetIrrigationScheduleUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository) GetIrrigationScheduleUsecaseI {
 	return &GetIrrigationScheduleUsecase{
 		irrigationScheduleRepo: irrigationScheduleRepo,
 	}

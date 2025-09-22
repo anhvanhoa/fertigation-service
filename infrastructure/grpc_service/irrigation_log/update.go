@@ -8,7 +8,7 @@ import (
 	irrigationLogP "github.com/anhvanhoa/sf-proto/gen/irrigation_log/v1"
 )
 
-func (s *IrrigationLogService) UpdateIrrigationLog(ctx context.Context, req *irrigationLogP.UpdateIrrigationLogRequest) (*irrigationLogP.UpdateIrrigationLogResponse, error) {
+func (s *IrrigationLogService) UpdateIrrigationLog(ctx context.Context, req *irrigationLogP.UpdateIrrigationLogRequest) (*irrigationLogP.IrrigationLogResponse, error) {
 	irrigationLogReq, err := s.createEntityUpdateIrrigationLogReq(req)
 	if err != nil {
 		return nil, err
@@ -17,11 +17,7 @@ func (s *IrrigationLogService) UpdateIrrigationLog(ctx context.Context, req *irr
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationLogP.UpdateIrrigationLogResponse{
-		Success:       true,
-		Message:       "Irrigation log updated successfully",
-		IrrigationLog: s.createProtoIrrigationLog(irrigationLog),
-	}, nil
+	return s.createProtoIrrigationLog(irrigationLog), nil
 }
 
 func (s *IrrigationLogService) createEntityUpdateIrrigationLogReq(req *irrigationLogP.UpdateIrrigationLogRequest) (*entity.UpdateIrrigationLogRequest, error) {

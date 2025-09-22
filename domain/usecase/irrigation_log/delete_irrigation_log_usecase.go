@@ -5,25 +5,26 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// DeleteIrrigationLogUsecase handles deleting irrigation logs
+type DeleteIrrigationLogUsecaseI interface {
+	Execute(ctx context.Context, id string) error
+}
+
 type DeleteIrrigationLogUsecase struct {
 	irrigationLogRepo repository.IrrigationLogRepository
 }
 
 // NewDeleteIrrigationLogUsecase creates a new instance of DeleteIrrigationLogUsecase
-func NewDeleteIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) *DeleteIrrigationLogUsecase {
+func NewDeleteIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) DeleteIrrigationLogUsecaseI {
 	return &DeleteIrrigationLogUsecase{
 		irrigationLogRepo: irrigationLogRepo,
 	}
 }
 
-// Execute deletes an irrigation log by ID
 func (u *DeleteIrrigationLogUsecase) Execute(ctx context.Context, id string) error {
 	if id == "" {
 		return ErrInvalidID
 	}
 
-	// Check if irrigation log exists
 	existingLog, err := u.irrigationLogRepo.GetByID(ctx, id)
 	if err != nil {
 		return err

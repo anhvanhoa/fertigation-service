@@ -6,14 +6,10 @@ import (
 	irrigationScheduleP "github.com/anhvanhoa/sf-proto/gen/irrigation_schedule/v1"
 )
 
-func (s *IrrigationScheduleService) GetIrrigationSchedule(ctx context.Context, req *irrigationScheduleP.GetIrrigationScheduleRequest) (*irrigationScheduleP.GetIrrigationScheduleResponse, error) {
+func (s *IrrigationScheduleService) GetIrrigationSchedule(ctx context.Context, req *irrigationScheduleP.GetIrrigationScheduleRequest) (*irrigationScheduleP.IrrigationScheduleResponse, error) {
 	irrigationSchedule, err := s.getIrrigationScheduleUsecase.Execute(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationScheduleP.GetIrrigationScheduleResponse{
-		Success:            true,
-		Message:            "Irrigation schedule retrieved successfully",
-		IrrigationSchedule: s.createProtoIrrigationSchedule(irrigationSchedule),
-	}, nil
+	return s.createProtoIrrigationSchedule(irrigationSchedule), nil
 }

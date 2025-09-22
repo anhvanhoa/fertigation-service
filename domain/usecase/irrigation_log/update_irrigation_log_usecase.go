@@ -7,18 +7,21 @@ import (
 )
 
 // UpdateIrrigationLogUsecase handles updating irrigation logs
+type UpdateIrrigationLogUsecaseI interface {
+	Execute(ctx context.Context, req *entity.UpdateIrrigationLogRequest) (*entity.IrrigationLog, error)
+}
+
 type UpdateIrrigationLogUsecase struct {
 	irrigationLogRepo repository.IrrigationLogRepository
 }
 
 // NewUpdateIrrigationLogUsecase creates a new instance of UpdateIrrigationLogUsecase
-func NewUpdateIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) *UpdateIrrigationLogUsecase {
+func NewUpdateIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) UpdateIrrigationLogUsecaseI {
 	return &UpdateIrrigationLogUsecase{
 		irrigationLogRepo: irrigationLogRepo,
 	}
 }
 
-// Execute updates an existing irrigation log
 func (u *UpdateIrrigationLogUsecase) Execute(ctx context.Context, req *entity.UpdateIrrigationLogRequest) (*entity.IrrigationLog, error) {
 	// Validate request
 	if err := u.validateRequest(req); err != nil {

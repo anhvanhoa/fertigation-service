@@ -5,6 +5,8 @@ import (
 	"fertigation-Service/domain/entity"
 	"time"
 
+	"github.com/anhvanhoa/service-core/common"
+	proto_common "github.com/anhvanhoa/sf-proto/gen/common/v1"
 	irrigationScheduleP "github.com/anhvanhoa/sf-proto/gen/irrigation_schedule/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -15,17 +17,13 @@ func (s *IrrigationScheduleService) ListIrrigationSchedules(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationScheduleP.ListIrrigationSchedulesResponse{
-		Success: true,
-		Message: "Irrigation schedules retrieved successfully",
-		Data:    s.createProtoListIrrigationSchedulesResponse(response),
-	}, nil
+	return s.createProtoListIrrigationSchedulesResponse(response), nil
 }
 
 func (s *IrrigationScheduleService) createEntityIrrigationScheduleFilter(req *irrigationScheduleP.ListIrrigationSchedulesRequest) *entity.IrrigationScheduleFilter {
 	filter := &entity.IrrigationScheduleFilter{
 		GrowingZoneID:   req.GrowingZoneId,
-		PlantingCycleId: req.PlantingCycleId,
+		PlantingCycleID: req.PlantingCycleId,
 		ScheduleName:    req.ScheduleName,
 		IrrigationType:  req.IrrigationType,
 		Frequency:       req.Frequency,
@@ -69,23 +67,25 @@ func (s *IrrigationScheduleService) createEntityIrrigationScheduleFilter(req *ir
 	return filter
 }
 
-func (s *IrrigationScheduleService) createProtoListIrrigationSchedulesResponse(response *entity.ListIrrigationSchedulesResponse) *irrigationScheduleP.ListIrrigationSchedulesData {
-	protoSchedules := make([]*irrigationScheduleP.IrrigationSchedule, len(response.IrrigationSchedules))
-	for i, schedule := range response.IrrigationSchedules {
-		protoSchedules[i] = s.createProtoIrrigationScheduleFromResponse(&schedule)
+func (s *IrrigationScheduleService) createProtoListIrrigationSchedulesResponse(response common.PaginationResult[*entity.IrrigationSchedule]) *irrigationScheduleP.ListIrrigationSchedulesResponse {
+	protoSchedules := make([]*irrigationScheduleP.IrrigationScheduleResponse, len(response.Data))
+	for i, schedule := range response.Data {
+		protoSchedules[i] = s.createProtoIrrigationScheduleFromResponse(schedule)
 	}
 
-	return &irrigationScheduleP.ListIrrigationSchedulesData{
+	return &irrigationScheduleP.ListIrrigationSchedulesResponse{
 		IrrigationSchedules: protoSchedules,
-		Total:               int32(response.Total),
-		Page:                int32(response.Page),
-		Limit:               int32(response.Limit),
-		TotalPages:          int32(response.TotalPages),
+		Pagination: &proto_common.PaginationResponse{
+			Total:      int32(response.Total),
+			Page:       int32(response.Page),
+			Limit:      int32(response.PageSize),
+			TotalPages: int32(response.TotalPages),
+		},
 	}
 }
 
-func (s *IrrigationScheduleService) createProtoIrrigationScheduleFromResponse(schedule *entity.IrrigationScheduleResponse) *irrigationScheduleP.IrrigationSchedule {
-	response := &irrigationScheduleP.IrrigationSchedule{
+func (s *IrrigationScheduleService) createProtoIrrigationScheduleFromResponse(schedule *entity.IrrigationSchedule) *irrigationScheduleP.IrrigationScheduleResponse {
+	response := &irrigationScheduleP.IrrigationScheduleResponse{
 		Id:                schedule.ID,
 		GrowingZoneId:     schedule.GrowingZoneID,
 		PlantingCycleId:   schedule.PlantingCycleID,

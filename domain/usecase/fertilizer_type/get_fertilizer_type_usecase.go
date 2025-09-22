@@ -6,13 +6,15 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// GetFertilizerTypeUsecase handles retrieving fertilizer types
+type GetFertilizerTypeUsecaseI interface {
+	Execute(ctx context.Context, id string) (*entity.FertilizerType, error)
+}
+
 type GetFertilizerTypeUsecase struct {
 	fertilizerTypeRepo repository.FertilizerTypeRepository
 }
 
-// NewGetFertilizerTypeUsecase creates a new instance of GetFertilizerTypeUsecase
-func NewGetFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) *GetFertilizerTypeUsecase {
+func NewGetFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) GetFertilizerTypeUsecaseI {
 	return &GetFertilizerTypeUsecase{
 		fertilizerTypeRepo: fertilizerTypeRepo,
 	}

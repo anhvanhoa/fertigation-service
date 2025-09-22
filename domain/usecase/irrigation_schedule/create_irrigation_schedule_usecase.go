@@ -6,21 +6,21 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// CreateIrrigationScheduleUsecase handles the creation of irrigation schedules
+type CreateIrrigationScheduleUsecaseI interface {
+	Execute(ctx context.Context, req *entity.CreateIrrigationScheduleRequest) (*entity.IrrigationSchedule, error)
+}
+
 type CreateIrrigationScheduleUsecase struct {
 	irrigationScheduleRepo repository.IrrigationScheduleRepository
 }
 
-// NewCreateIrrigationScheduleUsecase creates a new instance of CreateIrrigationScheduleUsecase
-func NewCreateIrrigationScheduleUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository) *CreateIrrigationScheduleUsecase {
+func NewCreateIrrigationScheduleUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository) CreateIrrigationScheduleUsecaseI {
 	return &CreateIrrigationScheduleUsecase{
 		irrigationScheduleRepo: irrigationScheduleRepo,
 	}
 }
 
-// Execute creates a new irrigation schedule
 func (u *CreateIrrigationScheduleUsecase) Execute(ctx context.Context, req *entity.CreateIrrigationScheduleRequest) (*entity.IrrigationSchedule, error) {
-	// Validate request
 	if err := u.validateRequest(req); err != nil {
 		return nil, err
 	}

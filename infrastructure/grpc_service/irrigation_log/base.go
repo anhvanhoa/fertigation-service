@@ -9,11 +9,11 @@ import (
 
 type IrrigationLogService struct {
 	irrigationLogP.UnsafeIrrigationLogServiceServer
-	createIrrigationLogUsecase *irrigation_log.CreateIrrigationLogUsecase
-	getIrrigationLogUsecase    *irrigation_log.GetIrrigationLogUsecase
-	updateIrrigationLogUsecase *irrigation_log.UpdateIrrigationLogUsecase
-	deleteIrrigationLogUsecase *irrigation_log.DeleteIrrigationLogUsecase
-	listIrrigationLogUsecase   *irrigation_log.ListIrrigationLogUsecase
+	createIrrigationLogUsecase irrigation_log.CreateIrrigationLogUsecaseI
+	getIrrigationLogUsecase    irrigation_log.GetIrrigationLogUsecaseI
+	updateIrrigationLogUsecase irrigation_log.UpdateIrrigationLogUsecaseI
+	deleteIrrigationLogUsecase irrigation_log.DeleteIrrigationLogUsecaseI
+	listIrrigationLogUsecase   irrigation_log.ListIrrigationLogUsecaseI
 }
 
 func NewIrrigationLogService(irrigationLogRepo repository.IrrigationLogRepository) irrigationLogP.IrrigationLogServiceServer {

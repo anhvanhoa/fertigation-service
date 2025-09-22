@@ -5,10 +5,14 @@ import (
 	"fertigation-Service/domain/entity"
 	"fertigation-Service/domain/repository"
 
+	"github.com/anhvanhoa/service-core/common"
 	"github.com/anhvanhoa/service-core/utils"
 )
 
-// ListFertilizerTypeUsecase handles listing fertilizer types
+type ListFertilizerTypeUsecaseI interface {
+	Execute(ctx context.Context, filter *entity.FertilizerTypeFilter) (common.PaginationResult[*entity.FertilizerType], error)
+}
+
 type ListFertilizerTypeUsecase struct {
 	fertilizerTypeRepo repository.FertilizerTypeRepository
 	helper             utils.Helper
@@ -18,27 +22,28 @@ type ListFertilizerTypeUsecase struct {
 func NewListFertilizerTypeUsecase(
 	fertilizerTypeRepo repository.FertilizerTypeRepository,
 	helper utils.Helper,
-) *ListFertilizerTypeUsecase {
+) ListFertilizerTypeUsecaseI {
 	return &ListFertilizerTypeUsecase{
 		fertilizerTypeRepo: fertilizerTypeRepo,
 		helper:             helper,
 	}
 }
 
-// Execute retrieves a list of fertilizer types with filtering and pagination
-func (u *ListFertilizerTypeUsecase) Execute(ctx context.Context, filter *entity.FertilizerTypeFilter) (*entity.ListFertilizerTypesResponse, error) {
+func (u *ListFertilizerTypeUsecase) Execute(ctx context.Context, filter *entity.FertilizerTypeFilter) (common.PaginationResult[*entity.FertilizerType], error) {
 	u.validateRequest(filter)
 
-	response, err := u.fertilizerTypeRepo.List(ctx, filter)
+	response, total, err := u.fertilizerTypeRepo.List(ctx, filter)
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*entity.FertilizerType]{}, err
 	}
 
-	if response.Total > 0 {
-		response.TotalPages = int(u.helper.CalculateTotalPages(int64(response.Total), int64(filter.PageSize)))
-	}
-
-	return response, nil
+	return common.PaginationResult[*entity.FertilizerType]{
+		Data:       response,
+		Total:      total,
+		Page:       filter.Page,
+		PageSize:   filter.PageSize,
+		TotalPages: u.helper.CalculateTotalPages(total, int64(filter.PageSize)),
+	}, nil
 }
 
 func (u *ListFertilizerTypeUsecase) validateRequest(filter *entity.FertilizerTypeFilter) {

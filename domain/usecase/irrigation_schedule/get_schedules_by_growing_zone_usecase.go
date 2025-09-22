@@ -4,30 +4,42 @@ import (
 	"context"
 	"fertigation-Service/domain/entity"
 	"fertigation-Service/domain/repository"
+
+	"github.com/anhvanhoa/service-core/common"
+	"github.com/anhvanhoa/service-core/utils"
 )
 
-// GetSchedulesByGrowingZoneUsecase handles retrieving irrigation schedules by growing zone
+type GetSchedulesByGrowingZoneUsecaseI interface {
+	Execute(ctx context.Context, growingZoneID string, filter *common.Pagination) (common.PaginationResult[*entity.IrrigationSchedule], error)
+}
+
 type GetSchedulesByGrowingZoneUsecase struct {
 	irrigationScheduleRepo repository.IrrigationScheduleRepository
+	helper                 utils.Helper
 }
 
-// NewGetSchedulesByGrowingZoneUsecase creates a new instance of GetSchedulesByGrowingZoneUsecase
-func NewGetSchedulesByGrowingZoneUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository) *GetSchedulesByGrowingZoneUsecase {
+func NewGetSchedulesByGrowingZoneUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository, helper utils.Helper) GetSchedulesByGrowingZoneUsecaseI {
 	return &GetSchedulesByGrowingZoneUsecase{
 		irrigationScheduleRepo: irrigationScheduleRepo,
+		helper:                 helper,
 	}
 }
 
-// Execute retrieves irrigation schedules by growing zone ID
-func (u *GetSchedulesByGrowingZoneUsecase) Execute(ctx context.Context, growingZoneID string) ([]*entity.IrrigationSchedule, error) {
+func (u *GetSchedulesByGrowingZoneUsecase) Execute(ctx context.Context, growingZoneID string, filter *common.Pagination) (common.PaginationResult[*entity.IrrigationSchedule], error) {
 	if growingZoneID == "" {
-		return nil, ErrInvalidGrowingZoneID
+		return common.PaginationResult[*entity.IrrigationSchedule]{}, ErrInvalidGrowingZoneID
 	}
 
-	schedules, err := u.irrigationScheduleRepo.GetByGrowingZoneID(ctx, growingZoneID)
+	schedules, total, err := u.irrigationScheduleRepo.GetByGrowingZoneID(ctx, growingZoneID, filter)
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*entity.IrrigationSchedule]{}, err
 	}
 
-	return schedules, nil
+	return common.PaginationResult[*entity.IrrigationSchedule]{
+		Data:       schedules,
+		Total:      total,
+		Page:       filter.Page,
+		PageSize:   filter.PageSize,
+		TotalPages: u.helper.CalculateTotalPages(total, int64(filter.PageSize)),
+	}, nil
 }

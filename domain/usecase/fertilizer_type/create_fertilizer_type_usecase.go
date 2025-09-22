@@ -6,26 +6,25 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// CreateFertilizerTypeUsecase handles the creation of fertilizer types
+type CreateFertilizerTypeUsecaseI interface {
+	Execute(ctx context.Context, req *entity.CreateFertilizerTypeRequest) (*entity.FertilizerType, error)
+}
+
 type CreateFertilizerTypeUsecase struct {
 	fertilizerTypeRepo repository.FertilizerTypeRepository
 }
 
-// NewCreateFertilizerTypeUsecase creates a new instance of CreateFertilizerTypeUsecase
-func NewCreateFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) *CreateFertilizerTypeUsecase {
+func NewCreateFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) CreateFertilizerTypeUsecaseI {
 	return &CreateFertilizerTypeUsecase{
 		fertilizerTypeRepo: fertilizerTypeRepo,
 	}
 }
 
-// Execute creates a new fertilizer type
 func (u *CreateFertilizerTypeUsecase) Execute(ctx context.Context, req *entity.CreateFertilizerTypeRequest) (*entity.FertilizerType, error) {
-	// Validate request
 	if err := u.validateRequest(req); err != nil {
 		return nil, err
 	}
 
-	// Check if fertilizer type name already exists
 	exists, err := u.fertilizerTypeRepo.CheckNameExists(ctx, req.Name)
 	if err != nil {
 		return nil, err
@@ -34,7 +33,6 @@ func (u *CreateFertilizerTypeUsecase) Execute(ctx context.Context, req *entity.C
 		return nil, ErrFertilizerTypeNameAlreadyExists
 	}
 
-	// Check if batch number already exists (if provided)
 	if req.BatchNumber != "" {
 		exists, err := u.fertilizerTypeRepo.CheckBatchNumberExists(ctx, req.BatchNumber)
 		if err != nil {

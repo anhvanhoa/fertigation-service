@@ -8,7 +8,7 @@ import (
 	irrigationScheduleP "github.com/anhvanhoa/sf-proto/gen/irrigation_schedule/v1"
 )
 
-func (s *IrrigationScheduleService) UpdateIrrigationSchedule(ctx context.Context, req *irrigationScheduleP.UpdateIrrigationScheduleRequest) (*irrigationScheduleP.UpdateIrrigationScheduleResponse, error) {
+func (s *IrrigationScheduleService) UpdateIrrigationSchedule(ctx context.Context, req *irrigationScheduleP.UpdateIrrigationScheduleRequest) (*irrigationScheduleP.IrrigationScheduleResponse, error) {
 	irrigationScheduleReq, err := s.createEntityUpdateIrrigationScheduleReq(req)
 	if err != nil {
 		return nil, err
@@ -17,18 +17,14 @@ func (s *IrrigationScheduleService) UpdateIrrigationSchedule(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationScheduleP.UpdateIrrigationScheduleResponse{
-		Success:            true,
-		Message:            "Irrigation schedule updated successfully",
-		IrrigationSchedule: s.createProtoIrrigationSchedule(irrigationSchedule),
-	}, nil
+	return s.createProtoIrrigationSchedule(irrigationSchedule), nil
 }
 
 func (s *IrrigationScheduleService) createEntityUpdateIrrigationScheduleReq(req *irrigationScheduleP.UpdateIrrigationScheduleRequest) (*entity.UpdateIrrigationScheduleRequest, error) {
 	irrigationSchedule := &entity.UpdateIrrigationScheduleRequest{
 		ID:                req.Id,
 		GrowingZoneID:     req.GrowingZoneId,
-		PlantingCycleId:   req.PlantingCycleId,
+		PlantingCycleID:   req.PlantingCycleId,
 		ScheduleName:      req.ScheduleName,
 		IrrigationType:    req.IrrigationType,
 		StartTime:         req.StartTime,

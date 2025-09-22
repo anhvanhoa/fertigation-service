@@ -7,18 +7,21 @@ import (
 )
 
 // ListIrrigationLogUsecase handles listing irrigation logs
+type ListIrrigationLogUsecaseI interface {
+	Execute(ctx context.Context, filter *entity.IrrigationLogFilter) (*entity.ListIrrigationLogsResponse, error)
+}
+
 type ListIrrigationLogUsecase struct {
 	irrigationLogRepo repository.IrrigationLogRepository
 }
 
 // NewListIrrigationLogUsecase creates a new instance of ListIrrigationLogUsecase
-func NewListIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) *ListIrrigationLogUsecase {
+func NewListIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) ListIrrigationLogUsecaseI {
 	return &ListIrrigationLogUsecase{
 		irrigationLogRepo: irrigationLogRepo,
 	}
 }
 
-// Execute retrieves a list of irrigation logs with filtering and pagination
 func (u *ListIrrigationLogUsecase) Execute(ctx context.Context, filter *entity.IrrigationLogFilter) (*entity.ListIrrigationLogsResponse, error) {
 	u.validateRequest(filter)
 	response, err := u.irrigationLogRepo.List(ctx, filter)
@@ -26,7 +29,6 @@ func (u *ListIrrigationLogUsecase) Execute(ctx context.Context, filter *entity.I
 		return nil, err
 	}
 
-	// Calculate total pages
 	if response.Total > 0 {
 		response.TotalPages = (response.Total + filter.Limit - 1) / filter.Limit
 	}

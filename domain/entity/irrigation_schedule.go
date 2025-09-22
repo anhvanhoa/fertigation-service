@@ -100,14 +100,6 @@ type IrrigationScheduleResponse struct {
 	UpdatedAt         time.Time
 }
 
-type ListIrrigationSchedulesResponse struct {
-	IrrigationSchedules []IrrigationScheduleResponse
-	Total               int
-	Page                int
-	Limit               int
-	TotalPages          int
-}
-
 type IrrigationScheduleStatistics struct {
 	TotalSchedules         int
 	ActiveSchedules        int

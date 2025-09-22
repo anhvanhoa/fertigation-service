@@ -86,9 +86,10 @@ func (s *FertilizerScheduleService) createProtoListFertilizerSchedulesResponse(r
 
 	return &proto_fertilizer_schedule.ListFertilizerSchedulesResponse{
 		FertilizerSchedules: protoSchedules,
-		Total:               int32(response.Total),
-		Page:                int32(response.Page),
-		TotalPages:          int32(response.TotalPages),
+		Total:               response.Total,
+		Page:                int64(response.Page),
+		TotalPages:          int64(response.TotalPages),
+		PageSize:            int64(response.PageSize),
 	}
 }
 

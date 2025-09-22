@@ -5,6 +5,7 @@ import (
 	"fertigation-Service/domain/entity"
 	"time"
 
+	"github.com/anhvanhoa/service-core/common"
 	fertilizerTypeP "github.com/anhvanhoa/sf-proto/gen/fertilizer_type/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -15,7 +16,7 @@ func (s *FertilizerTypeService) ListFertilizerTypes(ctx context.Context, req *fe
 	if err != nil {
 		return nil, err
 	}
-	return s.createProtoListFertilizerTypesResponse(response), nil
+	return s.createProtoListFertilizerTypesResponse(&response), nil
 }
 
 func (s *FertilizerTypeService) createEntityFertilizerTypeFilter(req *fertilizerTypeP.ListFertilizerTypesRequest) *entity.FertilizerTypeFilter {
@@ -63,23 +64,23 @@ func (s *FertilizerTypeService) createEntityFertilizerTypeFilter(req *fertilizer
 	return filter
 }
 
-func (s *FertilizerTypeService) createProtoListFertilizerTypesResponse(response *entity.ListFertilizerTypesResponse) *fertilizerTypeP.ListFertilizerTypesResponse {
-	protoTypes := make([]*fertilizerTypeP.FertilizerTypeResponse, len(response.FertilizerTypes))
-	for i, fertilizerType := range response.FertilizerTypes {
-		protoTypes[i] = s.createProtoFertilizerTypeFromResponse(&fertilizerType)
+func (s *FertilizerTypeService) createProtoListFertilizerTypesResponse(response *common.PaginationResult[*entity.FertilizerType]) *fertilizerTypeP.ListFertilizerTypesResponse {
+	protoTypes := make([]*fertilizerTypeP.FertilizerTypeResponse, len(response.Data))
+	for i, fertilizerType := range response.Data {
+		protoTypes[i] = s.createProtoFertilizerTypeFromResponse(fertilizerType)
 	}
 
 	return &fertilizerTypeP.ListFertilizerTypesResponse{
 		FertilizerTypes: protoTypes,
-		Total:           int32(response.Total),
-		Page:            int32(response.Page),
-		PageSize:        int32(response.PageSize),
-		TotalPages:      int32(response.TotalPages),
+		Total:           response.Total,
+		Page:            int64(response.Page),
+		PageSize:        int64(response.PageSize),
+		TotalPages:      response.TotalPages,
 	}
 }
 
-func (s *FertilizerTypeService) createProtoFertilizerTypeFromResponse(fertilizerType *entity.FertilizerTypeResponse) *fertilizerTypeP.FertilizerType {
-	response := &fertilizerTypeP.FertilizerType{
+func (s *FertilizerTypeService) createProtoFertilizerTypeFromResponse(fertilizerType *entity.FertilizerType) *fertilizerTypeP.FertilizerTypeResponse {
+	response := &fertilizerTypeP.FertilizerTypeResponse{
 		Id:                   fertilizerType.ID,
 		Name:                 fertilizerType.Name,
 		Type:                 fertilizerType.Type,

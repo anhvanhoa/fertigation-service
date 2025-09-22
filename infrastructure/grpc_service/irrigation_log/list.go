@@ -15,11 +15,7 @@ func (s *IrrigationLogService) ListIrrigationLogs(ctx context.Context, req *irri
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationLogP.ListIrrigationLogsResponse{
-		Success: true,
-		Message: "Irrigation logs retrieved successfully",
-		Data:    s.createProtoListIrrigationLogsResponse(response),
-	}, nil
+	return s.createProtoListIrrigationLogsResponse(response), nil
 }
 
 func (s *IrrigationLogService) createEntityIrrigationLogFilter(req *irrigationLogP.ListIrrigationLogsRequest) *entity.IrrigationLogFilter {
@@ -79,13 +75,13 @@ func (s *IrrigationLogService) createEntityIrrigationLogFilter(req *irrigationLo
 	return filter
 }
 
-func (s *IrrigationLogService) createProtoListIrrigationLogsResponse(response *entity.ListIrrigationLogsResponse) *irrigationLogP.ListIrrigationLogsData {
-	protoLogs := make([]*irrigationLogP.IrrigationLog, len(response.IrrigationLogs))
+func (s *IrrigationLogService) createProtoListIrrigationLogsResponse(response *entity.ListIrrigationLogsResponse) *irrigationLogP.ListIrrigationLogsResponse {
+	protoLogs := make([]*irrigationLogP.IrrigationLogResponse, len(response.IrrigationLogs))
 	for i, log := range response.IrrigationLogs {
 		protoLogs[i] = s.createProtoIrrigationLogFromResponse(&log)
 	}
 
-	return &irrigationLogP.ListIrrigationLogsData{
+	return &irrigationLogP.ListIrrigationLogsResponse{
 		IrrigationLogs: protoLogs,
 		Total:          int32(response.Total),
 		Page:           int32(response.Page),
@@ -94,8 +90,8 @@ func (s *IrrigationLogService) createProtoListIrrigationLogsResponse(response *e
 	}
 }
 
-func (s *IrrigationLogService) createProtoIrrigationLogFromResponse(log *entity.IrrigationLogResponse) *irrigationLogP.IrrigationLog {
-	response := &irrigationLogP.IrrigationLog{
+func (s *IrrigationLogService) createProtoIrrigationLogFromResponse(log *entity.IrrigationLogResponse) *irrigationLogP.IrrigationLogResponse {
+	response := &irrigationLogP.IrrigationLogResponse{
 		Id:                     log.ID,
 		IrrigationScheduleId:   log.IrrigationScheduleID,
 		DeviceId:               log.DeviceID,

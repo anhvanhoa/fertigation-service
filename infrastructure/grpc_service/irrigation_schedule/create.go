@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (s *IrrigationScheduleService) CreateIrrigationSchedule(ctx context.Context, req *irrigationScheduleP.CreateIrrigationScheduleRequest) (*irrigationScheduleP.CreateIrrigationScheduleResponse, error) {
+func (s *IrrigationScheduleService) CreateIrrigationSchedule(ctx context.Context, req *irrigationScheduleP.CreateIrrigationScheduleRequest) (*irrigationScheduleP.IrrigationScheduleResponse, error) {
 	irrigationScheduleReq, err := s.createEntityIrrigationScheduleReq(req)
 	if err != nil {
 		return nil, err
@@ -17,11 +17,7 @@ func (s *IrrigationScheduleService) CreateIrrigationSchedule(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationScheduleP.CreateIrrigationScheduleResponse{
-		Success:            true,
-		Message:            "Irrigation schedule created successfully",
-		IrrigationSchedule: s.createProtoIrrigationSchedule(irrigationSchedule),
-	}, nil
+	return s.createProtoIrrigationSchedule(irrigationSchedule), nil
 }
 
 func (s *IrrigationScheduleService) createEntityIrrigationScheduleReq(req *irrigationScheduleP.CreateIrrigationScheduleRequest) (*entity.CreateIrrigationScheduleRequest, error) {
@@ -43,8 +39,8 @@ func (s *IrrigationScheduleService) createEntityIrrigationScheduleReq(req *irrig
 	return irrigationSchedule, nil
 }
 
-func (s *IrrigationScheduleService) createProtoIrrigationSchedule(irrigationSchedule *entity.IrrigationSchedule) *irrigationScheduleP.IrrigationSchedule {
-	response := &irrigationScheduleP.IrrigationSchedule{
+func (s *IrrigationScheduleService) createProtoIrrigationSchedule(irrigationSchedule *entity.IrrigationSchedule) *irrigationScheduleP.IrrigationScheduleResponse {
+	response := &irrigationScheduleP.IrrigationScheduleResponse{
 		Id:                irrigationSchedule.ID,
 		GrowingZoneId:     irrigationSchedule.GrowingZoneID,
 		PlantingCycleId:   irrigationSchedule.PlantingCycleID,

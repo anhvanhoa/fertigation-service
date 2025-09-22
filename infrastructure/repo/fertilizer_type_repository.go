@@ -14,7 +14,6 @@ type fertilizerTypeRepository struct {
 	db *pg.DB
 }
 
-// NewFertilizerTypeRepository creates a new fertilizer type repository
 func NewFertilizerTypeRepository(db *pg.DB) repository.FertilizerTypeRepository {
 	return &fertilizerTypeRepository{
 		db: db,
@@ -221,115 +220,197 @@ func (r *fertilizerTypeRepository) GetByType(ctx context.Context, fertilizerType
 	return fertilizerTypes, int64(total), err
 }
 
-// GetByApplicationMethod retrieves fertilizer types by application method
-func (r *fertilizerTypeRepository) GetByApplicationMethod(ctx context.Context, method string, filter common.Pagination) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByApplicationMethod(ctx context.Context, method string, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).Where("application_method = ?", method).Select()
-	return fertilizerTypes, err
-}
-
-// GetByStatus retrieves fertilizer types by status
-func (r *fertilizerTypeRepository) GetByStatus(ctx context.Context, status string) ([]*entity.FertilizerType, error) {
-	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).Where("status = ?", status).Select()
-	return fertilizerTypes, err
-}
-
-// GetByManufacturer retrieves fertilizer types by manufacturer
-func (r *fertilizerTypeRepository) GetByManufacturer(ctx context.Context, manufacturer string) ([]*entity.FertilizerType, error) {
-	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).Where("manufacturer ILIKE ?", "%"+manufacturer+"%").Select()
-	return fertilizerTypes, err
-}
-
-// GetByCreator retrieves fertilizer types created by a specific user
-func (r *fertilizerTypeRepository) GetByCreator(ctx context.Context, createdBy string) ([]*entity.FertilizerType, error) {
-	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).Where("created_by = ?", createdBy).Select()
-	return fertilizerTypes, err
-}
-
-// GetByNPKRatio retrieves fertilizer types by NPK ratio
-func (r *fertilizerTypeRepository) GetByNPKRatio(ctx context.Context, npkRatio string) ([]*entity.FertilizerType, error) {
-	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).Where("npk_ratio = ?", npkRatio).Select()
-	return fertilizerTypes, err
-}
-
-// GetByExpiryDate retrieves fertilizer types by expiry date range
-func (r *fertilizerTypeRepository) GetByExpiryDate(ctx context.Context, from, to string) ([]*entity.FertilizerType, error) {
-	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("expiry_date >= ? AND expiry_date <= ?", from, to).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).Where("application_method = ?", method)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// GetExpiredFertilizers retrieves all expired fertilizer types
-func (r *fertilizerTypeRepository) GetExpiredFertilizers(ctx context.Context) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByStatus(ctx context.Context, status string, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("expiry_date < ?", time.Now()).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).Where("status = ?", status)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// GetExpiringSoon retrieves fertilizer types expiring within specified days
-func (r *fertilizerTypeRepository) GetExpiringSoon(ctx context.Context, days int) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByManufacturer(ctx context.Context, manufacturer string, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
+	var fertilizerTypes []*entity.FertilizerType
+	q := r.db.ModelContext(ctx, &fertilizerTypes).Where("manufacturer ILIKE ?", "%"+manufacturer+"%")
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
+		Select()
+	return fertilizerTypes, int64(total), err
+}
+
+func (r *fertilizerTypeRepository) GetByCreator(ctx context.Context, createdBy string, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
+	var fertilizerTypes []*entity.FertilizerType
+	q := r.db.ModelContext(ctx, &fertilizerTypes).Where("created_by = ?", createdBy)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
+		Select()
+	return fertilizerTypes, int64(total), err
+}
+
+func (r *fertilizerTypeRepository) GetByNPKRatio(ctx context.Context, npkRatio string, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
+	var fertilizerTypes []*entity.FertilizerType
+	q := r.db.ModelContext(ctx, &fertilizerTypes).Where("npk_ratio = ?", npkRatio)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
+		Select()
+	return fertilizerTypes, int64(total), err
+}
+
+func (r *fertilizerTypeRepository) GetByExpiryDate(ctx context.Context, from, to string, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
+	var fertilizerTypes []*entity.FertilizerType
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("expiry_date >= ? AND expiry_date <= ?", from, to)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
+		Select()
+	return fertilizerTypes, int64(total), err
+}
+
+func (r *fertilizerTypeRepository) GetExpiredFertilizers(ctx context.Context, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
+	var fertilizerTypes []*entity.FertilizerType
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("expiry_date < ?", time.Now())
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
+		Select()
+	return fertilizerTypes, int64(total), err
+}
+
+func (r *fertilizerTypeRepository) GetExpiringSoon(ctx context.Context, days int, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
 	expiryThreshold := time.Now().AddDate(0, 0, days)
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("expiry_date <= ? AND expiry_date > ?", expiryThreshold, time.Now()).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("expiry_date <= ? AND expiry_date > ?", expiryThreshold, time.Now())
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// GetByCostRange retrieves fertilizer types within a cost range
-func (r *fertilizerTypeRepository) GetByCostRange(ctx context.Context, minCost, maxCost float64) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByCostRange(ctx context.Context, minCost, maxCost float64, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("cost_per_unit >= ? AND cost_per_unit <= ?", minCost, maxCost).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("cost_per_unit >= ? AND cost_per_unit <= ?", minCost, maxCost)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// GetByNitrogenRange retrieves fertilizer types within a nitrogen percentage range
-func (r *fertilizerTypeRepository) GetByNitrogenRange(ctx context.Context, minNitrogen, maxNitrogen float64) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByNitrogenRange(ctx context.Context, minNitrogen, maxNitrogen float64, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("nitrogen_percentage >= ? AND nitrogen_percentage <= ?", minNitrogen, maxNitrogen).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("nitrogen_percentage >= ? AND nitrogen_percentage <= ?", minNitrogen, maxNitrogen)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// GetByPhosphorusRange retrieves fertilizer types within a phosphorus percentage range
-func (r *fertilizerTypeRepository) GetByPhosphorusRange(ctx context.Context, minPhosphorus, maxPhosphorus float64) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByPhosphorusRange(ctx context.Context, minPhosphorus, maxPhosphorus float64, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("phosphorus_percentage >= ? AND phosphorus_percentage <= ?", minPhosphorus, maxPhosphorus).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("phosphorus_percentage >= ? AND phosphorus_percentage <= ?", minPhosphorus, maxPhosphorus)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// GetByPotassiumRange retrieves fertilizer types within a potassium percentage range
-func (r *fertilizerTypeRepository) GetByPotassiumRange(ctx context.Context, minPotassium, maxPotassium float64) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByPotassiumRange(ctx context.Context, minPotassium, maxPotassium float64, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("potassium_percentage >= ? AND potassium_percentage <= ?", minPotassium, maxPotassium).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("potassium_percentage >= ? AND potassium_percentage <= ?", minPotassium, maxPotassium)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// GetByDosageRange retrieves fertilizer types within a dosage range
-func (r *fertilizerTypeRepository) GetByDosageRange(ctx context.Context, minDosage, maxDosage float64) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetByDosageRange(ctx context.Context, minDosage, maxDosage float64, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("dosage_per_plant >= ? AND dosage_per_plant <= ?", minDosage, maxDosage).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Where("dosage_per_plant >= ? AND dosage_per_plant <= ?", minDosage, maxDosage)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }
 
-// Count returns the total number of fertilizer types matching the filter
 func (r *fertilizerTypeRepository) Count(ctx context.Context, filter *entity.FertilizerTypeFilter) (int, error) {
 	query := r.db.ModelContext(ctx, (*entity.FertilizerType)(nil))
 
@@ -368,7 +449,6 @@ func (r *fertilizerTypeRepository) Count(ctx context.Context, filter *entity.Fer
 	return query.Count()
 }
 
-// CheckNameExists checks if a fertilizer type name already exists
 func (r *fertilizerTypeRepository) CheckNameExists(ctx context.Context, name string) (bool, error) {
 	count, err := r.db.ModelContext(ctx, (*entity.FertilizerType)(nil)).
 		Where("name = ?", name).
@@ -376,7 +456,6 @@ func (r *fertilizerTypeRepository) CheckNameExists(ctx context.Context, name str
 	return count > 0, err
 }
 
-// CheckBatchNumberExists checks if a batch number already exists
 func (r *fertilizerTypeRepository) CheckBatchNumberExists(ctx context.Context, batchNumber string) (bool, error) {
 	count, err := r.db.ModelContext(ctx, (*entity.FertilizerType)(nil)).
 		Where("batch_number = ?", batchNumber).
@@ -384,7 +463,6 @@ func (r *fertilizerTypeRepository) CheckBatchNumberExists(ctx context.Context, b
 	return count > 0, err
 }
 
-// GetFertilizerTypeStatistics returns statistics about fertilizer types
 func (r *fertilizerTypeRepository) GetFertilizerTypeStatistics(ctx context.Context) (*entity.FertilizerTypeStatistics, error) {
 	stats := &entity.FertilizerTypeStatistics{}
 
@@ -510,22 +588,17 @@ func (r *fertilizerTypeRepository) BulkUpdateStatus(ctx context.Context, ids []s
 	return err
 }
 
-// GetRecentFertilizerTypes retrieves recently created fertilizer types
-func (r *fertilizerTypeRepository) GetRecentFertilizerTypes(ctx context.Context, limit int) ([]*entity.FertilizerType, error) {
+func (r *fertilizerTypeRepository) GetRecentFertilizerTypes(ctx context.Context, filter common.Pagination) ([]*entity.FertilizerType, int64, error) {
 	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Order("created_at DESC").
-		Limit(limit).
+	q := r.db.ModelContext(ctx, &fertilizerTypes).
+		Order("created_at DESC")
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset(filter.Page * filter.PageSize).
 		Select()
-	return fertilizerTypes, err
-}
-
-// SearchFertilizerTypes performs full-text search on fertilizer types
-func (r *fertilizerTypeRepository) SearchFertilizerTypes(ctx context.Context, query string) ([]*entity.FertilizerType, error) {
-	var fertilizerTypes []*entity.FertilizerType
-	err := r.db.ModelContext(ctx, &fertilizerTypes).
-		Where("name ILIKE ? OR description ILIKE ? OR manufacturer ILIKE ?",
-			"%"+query+"%", "%"+query+"%", "%"+query+"%").
-		Select()
-	return fertilizerTypes, err
+	return fertilizerTypes, int64(total), err
 }

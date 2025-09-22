@@ -2,15 +2,15 @@ package fertilizer_type_service
 
 import (
 	"context"
-	"fertigation-Service/domain/entity"
 
+	"github.com/anhvanhoa/service-core/common"
 	fertilizerTypeP "github.com/anhvanhoa/sf-proto/gen/fertilizer_type/v1"
 )
 
-func (s *FertilizerTypeService) GetExpiredFertilizers(ctx context.Context, req *fertilizerTypeP.GetExpiredFertilizersRequest) (*fertilizerTypeP.GetExpiredFertilizersResponse, error) {
-	filter := &entity.FertilizerTypeFilter{
+func (s *FertilizerTypeService) GetExpiredFertilizers(ctx context.Context, req *fertilizerTypeP.Pagination) (*fertilizerTypeP.ListFertilizerTypesResponse, error) {
+	filter := common.Pagination{
 		Page:      int(req.Page),
-		Limit:     int(req.Limit),
+		PageSize:  int(req.PageSize),
 		SortBy:    req.SortBy,
 		SortOrder: req.SortOrder,
 	}
@@ -18,46 +18,33 @@ func (s *FertilizerTypeService) GetExpiredFertilizers(ctx context.Context, req *
 	if err != nil {
 		return nil, err
 	}
-	return &fertilizerTypeP.GetExpiredFertilizersResponse{
-		Success: true,
-		Message: "Expired fertilizers retrieved successfully",
-		Data:    s.createProtoListFertilizerTypesResponse(response),
-	}, nil
+	return s.createProtoListFertilizerTypesResponse(&response), nil
 }
 
-func (s *FertilizerTypeService) GetExpiringSoon(ctx context.Context, req *fertilizerTypeP.GetExpiringSoonRequest) (*fertilizerTypeP.GetExpiringSoonResponse, error) {
-	filter := &entity.FertilizerTypeFilter{
-		Page:      int(req.Page),
-		Limit:     int(req.Limit),
-		SortBy:    req.SortBy,
-		SortOrder: req.SortOrder,
+func (s *FertilizerTypeService) GetExpiringSoon(ctx context.Context, req *fertilizerTypeP.GetExpiringSoonRequest) (*fertilizerTypeP.ListFertilizerTypesResponse, error) {
+	filter := common.Pagination{
+		Page:      int(req.Pagination.Page),
+		PageSize:  int(req.Pagination.PageSize),
+		SortBy:    req.Pagination.SortBy,
+		SortOrder: req.Pagination.SortOrder,
 	}
-	response, err := s.getExpiringSoonUsecase.Execute(ctx, filter)
+	response, err := s.getExpiringSoonUsecase.Execute(ctx, int(req.Days), filter)
 	if err != nil {
 		return nil, err
 	}
-	return &fertilizerTypeP.GetExpiringSoonResponse{
-		Success: true,
-		Message: "Expiring soon fertilizers retrieved successfully",
-		Data:    s.createProtoListFertilizerTypesResponse(response),
-	}, nil
+	return s.createProtoListFertilizerTypesResponse(&response), nil
 }
 
-func (s *FertilizerTypeService) GetFertilizerTypesByType(ctx context.Context, req *fertilizerTypeP.GetFertilizerTypesByTypeRequest) (*fertilizerTypeP.GetFertilizerTypesByTypeResponse, error) {
-	filter := &entity.FertilizerTypeFilter{
-		Type:      req.Type,
-		Page:      int(req.Page),
-		Limit:     int(req.Limit),
-		SortBy:    req.SortBy,
-		SortOrder: req.SortOrder,
+func (s *FertilizerTypeService) GetFertilizerTypesByType(ctx context.Context, req *fertilizerTypeP.GetFertilizerTypesByTypeRequest) (*fertilizerTypeP.ListFertilizerTypesResponse, error) {
+	filter := common.Pagination{
+		Page:      int(req.Pagination.Page),
+		PageSize:  int(req.Pagination.PageSize),
+		SortBy:    req.Pagination.SortBy,
+		SortOrder: req.Pagination.SortOrder,
 	}
-	response, err := s.getFertilizerTypesByTypeUsecase.Execute(ctx, filter)
+	response, err := s.getFertilizerTypesByTypeUsecase.Execute(ctx, req.Type, filter)
 	if err != nil {
 		return nil, err
 	}
-	return &fertilizerTypeP.GetFertilizerTypesByTypeResponse{
-		Success: true,
-		Message: "Fertilizer types by type retrieved successfully",
-		Data:    s.createProtoListFertilizerTypesResponse(response),
-	}, nil
+	return s.createProtoListFertilizerTypesResponse(&response), nil
 }

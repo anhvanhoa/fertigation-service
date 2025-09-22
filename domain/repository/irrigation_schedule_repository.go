@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fertigation-Service/domain/entity"
+
+	"github.com/anhvanhoa/service-core/common"
 )
 
 // IrrigationScheduleRepository defines the interface for irrigation schedule data operations
@@ -20,31 +22,29 @@ type IrrigationScheduleRepository interface {
 	Delete(ctx context.Context, id string) error
 
 	// List retrieves irrigation schedules with filtering and pagination
-	List(ctx context.Context, filter *entity.IrrigationScheduleFilter) (*entity.ListIrrigationSchedulesResponse, error)
+	List(ctx context.Context, filter *entity.IrrigationScheduleFilter) ([]*entity.IrrigationSchedule, int64, error)
 
-	// GetByGrowingZoneID retrieves irrigation schedules by growing zone ID
-	GetByGrowingZoneID(ctx context.Context, growingZoneID string) ([]*entity.IrrigationSchedule, error)
+	GetByGrowingZoneID(ctx context.Context, growingZoneID string, filter *common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// GetByPlantingCycleID retrieves irrigation schedules by planting cycle ID
 	GetByPlantingCycleID(ctx context.Context, plantingCycleID string) ([]*entity.IrrigationSchedule, error)
 
-	// GetActiveSchedules retrieves all active irrigation schedules
-	GetActiveSchedules(ctx context.Context) ([]*entity.IrrigationSchedule, error)
+	GetActiveSchedules(ctx context.Context, isActive bool, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// GetSchedulesByType retrieves irrigation schedules by irrigation type
-	GetSchedulesByType(ctx context.Context, irrigationType string) ([]*entity.IrrigationSchedule, error)
+	GetSchedulesByType(ctx context.Context, irrigationType string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// GetSchedulesByFrequency retrieves irrigation schedules by frequency
-	GetSchedulesByFrequency(ctx context.Context, frequency string) ([]*entity.IrrigationSchedule, error)
+	GetSchedulesByFrequency(ctx context.Context, frequency string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// GetSchedulesWithFertilizerMix retrieves irrigation schedules that include fertilizer mixing
-	GetSchedulesWithFertilizerMix(ctx context.Context) ([]*entity.IrrigationSchedule, error)
+	GetSchedulesWithFertilizerMix(ctx context.Context, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// GetSchedulesByCreator retrieves irrigation schedules created by a specific user
-	GetSchedulesByCreator(ctx context.Context, createdBy string) ([]*entity.IrrigationSchedule, error)
+	GetSchedulesByCreator(ctx context.Context, createdBy string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// GetSchedulesForExecution retrieves schedules that need to be executed within a time range
-	GetSchedulesForExecution(ctx context.Context, from, to string) ([]*entity.IrrigationSchedule, error)
+	GetSchedulesForExecution(ctx context.Context, from, to string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// UpdateNextExecution updates the next execution time for a schedule
 	UpdateNextExecution(ctx context.Context, id string, nextExecution string) error
@@ -59,11 +59,10 @@ type IrrigationScheduleRepository interface {
 	CheckScheduleNameExists(ctx context.Context, scheduleName, growingZoneID string) (bool, error)
 
 	// GetSchedulesByDateRange retrieves schedules within a specific date range
-	GetSchedulesByDateRange(ctx context.Context, from, to string) ([]*entity.IrrigationSchedule, error)
+	GetSchedulesByDateRange(ctx context.Context, from, to string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error)
 
 	// BulkUpdateStatus updates the status of multiple schedules
 	BulkUpdateStatus(ctx context.Context, ids []string, isActive bool) error
 
-	// GetScheduleStatistics returns statistics about irrigation schedules
 	GetScheduleStatistics(ctx context.Context) (*entity.IrrigationScheduleStatistics, error)
 }

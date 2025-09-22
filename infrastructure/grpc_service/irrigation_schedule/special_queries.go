@@ -2,64 +2,53 @@ package irrigation_schedule_service
 
 import (
 	"context"
-	"fertigation-Service/domain/entity"
+	"time"
 
+	"github.com/anhvanhoa/service-core/common"
+	common_proto "github.com/anhvanhoa/sf-proto/gen/common/v1"
 	irrigationScheduleP "github.com/anhvanhoa/sf-proto/gen/irrigation_schedule/v1"
 )
 
-func (s *IrrigationScheduleService) GetActiveSchedules(ctx context.Context, req *irrigationScheduleP.GetActiveSchedulesRequest) (*irrigationScheduleP.GetActiveSchedulesResponse, error) {
-	filter := &entity.IrrigationScheduleFilter{
-		IsActive:  true,
+func (s *IrrigationScheduleService) GetActiveSchedules(ctx context.Context, req *common_proto.PaginationRequest) (*irrigationScheduleP.ListIrrigationSchedulesResponse, error) {
+	filter := &common.Pagination{
 		Page:      int(req.Page),
-		Limit:     int(req.Limit),
+		PageSize:  int(req.PageSize),
 		SortBy:    req.SortBy,
 		SortOrder: req.SortOrder,
 	}
-	response, err := s.getActiveSchedulesUsecase.Execute(ctx, filter)
+	response, err := s.getActiveSchedulesUsecase.Execute(ctx, *filter)
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationScheduleP.GetActiveSchedulesResponse{
-		Success: true,
-		Message: "Active schedules retrieved successfully",
-		Data:    s.createProtoListIrrigationSchedulesResponse(response),
-	}, nil
+	return s.createProtoListIrrigationSchedulesResponse(response), nil
 }
 
-func (s *IrrigationScheduleService) GetSchedulesByGrowingZone(ctx context.Context, req *irrigationScheduleP.GetSchedulesByGrowingZoneRequest) (*irrigationScheduleP.GetSchedulesByGrowingZoneResponse, error) {
-	filter := &entity.IrrigationScheduleFilter{
-		GrowingZoneID: req.GrowingZoneId,
-		Page:          int(req.Page),
-		Limit:         int(req.Limit),
-		SortBy:        req.SortBy,
-		SortOrder:     req.SortOrder,
+func (s *IrrigationScheduleService) GetSchedulesByGrowingZone(ctx context.Context, req *irrigationScheduleP.GetSchedulesByGrowingZoneRequest) (*irrigationScheduleP.ListIrrigationSchedulesResponse, error) {
+	filter := &common.Pagination{
+		Page:      int(req.Pagination.Page),
+		PageSize:  int(req.Pagination.PageSize),
+		SortBy:    req.Pagination.SortBy,
+		SortOrder: req.Pagination.SortOrder,
 	}
-	response, err := s.getSchedulesByGrowingZoneUsecase.Execute(ctx, filter)
+	response, err := s.getSchedulesByGrowingZoneUsecase.Execute(ctx, req.GrowingZoneId, filter)
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationScheduleP.GetSchedulesByGrowingZoneResponse{
-		Success: true,
-		Message: "Schedules by growing zone retrieved successfully",
-		Data:    s.createProtoListIrrigationSchedulesResponse(response),
-	}, nil
+	return s.createProtoListIrrigationSchedulesResponse(response), nil
 }
 
-func (s *IrrigationScheduleService) GetSchedulesForExecution(ctx context.Context, req *irrigationScheduleP.GetSchedulesForExecutionRequest) (*irrigationScheduleP.GetSchedulesForExecutionResponse, error) {
-	filter := &entity.IrrigationScheduleFilter{
-		IsActive:  true,
-		Page:      int(req.Page),
-		Limit:     int(req.Limit),
-		SortBy:    req.SortBy,
-		SortOrder: req.SortOrder,
+func (s *IrrigationScheduleService) GetSchedulesForExecution(ctx context.Context, req *irrigationScheduleP.GetSchedulesForExecutionRequest) (*irrigationScheduleP.ListIrrigationSchedulesResponse, error) {
+	filter := common.Pagination{
+		Page:      int(req.Pagination.Page),
+		PageSize:  int(req.Pagination.PageSize),
+		SortBy:    req.Pagination.SortBy,
+		SortOrder: req.Pagination.SortOrder,
 	}
-	response, err := s.getSchedulesForExecutionUsecase.Execute(ctx, filter)
+	fromTime := req.FromTime.AsTime().Format(time.RFC3339)
+	toTime := req.ToTime.AsTime().Format(time.RFC3339)
+	response, err := s.getSchedulesForExecutionUsecase.Execute(ctx, fromTime, toTime, filter)
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationScheduleP.GetSchedulesForExecutionResponse{
-		Success: true,
-		Message: "Schedules for execution retrieved successfully",
-		Data:    s.createProtoListIrrigationSchedulesResponse(response),
-	}, nil
+	return s.createProtoListIrrigationSchedulesResponse(response), nil
 }

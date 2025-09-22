@@ -95,7 +95,4 @@ type FertilizerTypeRepository interface {
 
 	// GetRecentFertilizerTypes retrieves recently created fertilizer types
 	GetRecentFertilizerTypes(ctx context.Context, filter common.Pagination) ([]*entity.FertilizerType, int64, error)
-
-	// SearchFertilizerTypes performs full-text search on fertilizer types
-	SearchFertilizerTypes(ctx context.Context, filter common.Pagination) ([]*entity.FertilizerType, int64, error)
 }

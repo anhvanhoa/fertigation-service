@@ -4,24 +4,31 @@ import (
 	"context"
 	"fertigation-Service/domain/entity"
 	"fertigation-Service/domain/repository"
+
+	"github.com/anhvanhoa/service-core/common"
+	"github.com/anhvanhoa/service-core/utils"
 )
 
 // GetFertilizerTypesByTypeUsecase handles retrieving fertilizer types by type
 type GetFertilizerTypesByTypeUsecase struct {
 	fertilizerTypeRepo repository.FertilizerTypeRepository
+	helper             utils.Helper
 }
 
-// NewGetFertilizerTypesByTypeUsecase creates a new instance of GetFertilizerTypesByTypeUsecase
-func NewGetFertilizerTypesByTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) *GetFertilizerTypesByTypeUsecase {
+type GetFertilizerTypesByTypeUsecaseI interface {
+	Execute(ctx context.Context, fertilizerType string, filter common.Pagination) (common.PaginationResult[*entity.FertilizerType], error)
+}
+
+func NewGetFertilizerTypesByTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository, helper utils.Helper) GetFertilizerTypesByTypeUsecaseI {
 	return &GetFertilizerTypesByTypeUsecase{
 		fertilizerTypeRepo: fertilizerTypeRepo,
+		helper:             helper,
 	}
 }
 
-// Execute retrieves fertilizer types by type
-func (u *GetFertilizerTypesByTypeUsecase) Execute(ctx context.Context, fertilizerType string) ([]*entity.FertilizerType, error) {
+func (u *GetFertilizerTypesByTypeUsecase) Execute(ctx context.Context, fertilizerType string, filter common.Pagination) (common.PaginationResult[*entity.FertilizerType], error) {
 	if fertilizerType == "" {
-		return nil, ErrInvalidFertilizerType
+		return common.PaginationResult[*entity.FertilizerType]{}, ErrInvalidFertilizerType
 	}
 
 	// Validate fertilizer type
@@ -34,13 +41,19 @@ func (u *GetFertilizerTypesByTypeUsecase) Execute(ctx context.Context, fertilize
 		}
 	}
 	if !typeValid {
-		return nil, ErrInvalidFertilizerType
+		return common.PaginationResult[*entity.FertilizerType]{}, ErrInvalidFertilizerType
 	}
 
-	fertilizerTypes, err := u.fertilizerTypeRepo.GetByType(ctx, fertilizerType)
+	fertilizerTypes, total, err := u.fertilizerTypeRepo.GetByType(ctx, fertilizerType, filter)
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*entity.FertilizerType]{}, err
 	}
 
-	return fertilizerTypes, nil
+	return common.PaginationResult[*entity.FertilizerType]{
+		Data:       fertilizerTypes,
+		Total:      total,
+		Page:       filter.Page,
+		PageSize:   filter.PageSize,
+		TotalPages: u.helper.CalculateTotalPages(total, int64(filter.PageSize)),
+	}, nil
 }

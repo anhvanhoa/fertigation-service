@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func (s *IrrigationLogService) CreateIrrigationLog(ctx context.Context, req *irrigationLogP.CreateIrrigationLogRequest) (*irrigationLogP.CreateIrrigationLogResponse, error) {
+func (s *IrrigationLogService) CreateIrrigationLog(ctx context.Context, req *irrigationLogP.CreateIrrigationLogRequest) (*irrigationLogP.IrrigationLogResponse, error) {
 	irrigationLogReq, err := s.createEntityIrrigationLogReq(req)
 	if err != nil {
 		return nil, err
@@ -18,11 +18,7 @@ func (s *IrrigationLogService) CreateIrrigationLog(ctx context.Context, req *irr
 	if err != nil {
 		return nil, err
 	}
-	return &irrigationLogP.CreateIrrigationLogResponse{
-		Success:       true,
-		Message:       "Irrigation log created successfully",
-		IrrigationLog: s.createProtoIrrigationLog(irrigationLog),
-	}, nil
+	return s.createProtoIrrigationLog(irrigationLog), nil
 }
 
 func (s *IrrigationLogService) createEntityIrrigationLogReq(req *irrigationLogP.CreateIrrigationLogRequest) (*entity.CreateIrrigationLogRequest, error) {
@@ -58,8 +54,8 @@ func (s *IrrigationLogService) createEntityIrrigationLogReq(req *irrigationLogP.
 	return irrigationLog, nil
 }
 
-func (s *IrrigationLogService) createProtoIrrigationLog(irrigationLog *entity.IrrigationLog) *irrigationLogP.IrrigationLog {
-	response := &irrigationLogP.IrrigationLog{
+func (s *IrrigationLogService) createProtoIrrigationLog(irrigationLog *entity.IrrigationLog) *irrigationLogP.IrrigationLogResponse {
+	response := &irrigationLogP.IrrigationLogResponse{
 		Id:                     irrigationLog.ID,
 		IrrigationScheduleId:   irrigationLog.IrrigationScheduleID,
 		DeviceId:               irrigationLog.DeviceID,

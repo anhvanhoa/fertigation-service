@@ -90,31 +90,6 @@ type FertilizerTypeFilter struct {
 	SortOrder         string
 }
 
-type FertilizerTypeResponse struct {
-	ID                   string
-	Name                 string
-	Type                 string
-	NPKRatio             string
-	NitrogenPercentage   float64
-	PhosphorusPercentage float64
-	PotassiumPercentage  float64
-	TraceElements        string
-	ApplicationMethod    string
-	DosagePerPlant       float64
-	DosagePerM2          float64
-	Unit                 string
-	Manufacturer         string
-	BatchNumber          string
-	ExpiryDate           *time.Time
-	CostPerUnit          float64
-	Description          string
-	SafetyNotes          string
-	Status               string
-	CreatedBy            string
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
-}
-
 type FertilizerTypeStatistics struct {
 	TotalFertilizerTypes    int
 	ActiveFertilizerTypes   int

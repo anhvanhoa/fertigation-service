@@ -8,7 +8,7 @@ import (
 	fertilizerTypeP "github.com/anhvanhoa/sf-proto/gen/fertilizer_type/v1"
 )
 
-func (s *FertilizerTypeService) UpdateFertilizerType(ctx context.Context, req *fertilizerTypeP.UpdateFertilizerTypeRequest) (*fertilizerTypeP.UpdateFertilizerTypeResponse, error) {
+func (s *FertilizerTypeService) UpdateFertilizerType(ctx context.Context, req *fertilizerTypeP.UpdateFertilizerTypeRequest) (*fertilizerTypeP.FertilizerTypeResponse, error) {
 	fertilizerTypeReq, err := s.createEntityUpdateFertilizerTypeReq(req)
 	if err != nil {
 		return nil, err
@@ -17,11 +17,7 @@ func (s *FertilizerTypeService) UpdateFertilizerType(ctx context.Context, req *f
 	if err != nil {
 		return nil, err
 	}
-	return &fertilizerTypeP.UpdateFertilizerTypeResponse{
-		Success:        true,
-		Message:        "Fertilizer type updated successfully",
-		FertilizerType: s.createProtoFertilizerType(fertilizerType),
-	}, nil
+	return s.createProtoFertilizerType(fertilizerType), nil
 }
 
 func (s *FertilizerTypeService) createEntityUpdateFertilizerTypeReq(req *fertilizerTypeP.UpdateFertilizerTypeRequest) (*entity.UpdateFertilizerTypeRequest, error) {

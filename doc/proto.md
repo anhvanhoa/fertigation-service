@@ -5,7 +5,6 @@ package fertilizer_schedule.v1;
 option go_package = "github.com/anhvanhoa/sf-proto/gen/fertilizer_schedule/v1;proto_fertilizer_schedule";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 import "buf/validate/validate.proto";
 
 // Fertilizer Schedule Service
@@ -18,19 +17,30 @@ service FertilizerScheduleService {
   rpc UpdateFertilizerSchedule(UpdateFertilizerScheduleRequest)
       returns (FertilizerScheduleResponse);
   rpc DeleteFertilizerSchedule(DeleteFertilizerScheduleRequest)
-      returns (google.protobuf.Empty);
-  rpc ListFertilizerSchedules(ListFertilizerSchedulesRequest)
+      returns (DeleteFertilizerScheduleResponse);
+  rpc ListFertilizerSchedules(FilterFertilizerSchedulesRequest)
       returns (ListFertilizerSchedulesResponse);
 
   // Special operations
   rpc GetSchedulesByPlantingCycle(GetSchedulesByPlantingCycleRequest)
       returns (ListFertilizerSchedulesResponse);
-  rpc GetCompletedSchedules(google.protobuf.Empty)
+  rpc GetCompletedSchedules(Pagination)
       returns (ListFertilizerSchedulesResponse);
-  rpc GetPendingSchedules(google.protobuf.Empty)
+  rpc GetPendingSchedules(Pagination)
       returns (ListFertilizerSchedulesResponse);
   rpc GetUpcomingSchedules(GetUpcomingSchedulesRequest)
       returns (ListFertilizerSchedulesResponse);
+}
+
+message Pagination {
+  int32 page = 1 [ (buf.validate.field).int32 = {gte : 1} ];
+  int32 page_size = 2 [ (buf.validate.field).int32 = {gte : 1, lte : 100} ];
+  string sort_by = 3 [ (buf.validate.field).string = {max_len : 50} ];
+  string sort_order = 4 [
+    (buf.validate.field).string.in = "asc",
+    (buf.validate.field).string.in = "desc"
+  ];
+  string search = 5 [ (buf.validate.field).string = {max_len : 255} ];
 }
 
 // Request/Response messages
@@ -106,7 +116,11 @@ message DeleteFertilizerScheduleRequest {
   string id = 1 [ (buf.validate.field).string.uuid = true ];
 }
 
-message ListFertilizerSchedulesRequest {
+message DeleteFertilizerScheduleResponse {
+  string message = 1;
+}
+
+message FilterFertilizerSchedulesRequest {
   string planting_cycle_id = 1 [ (buf.validate.field).string.uuid = true ];
   string fertilizer_type_id = 2 [ (buf.validate.field).string.uuid = true ];
   string application_method = 3 [
@@ -141,10 +155,12 @@ message ListFertilizerSchedulesRequest {
 
 message GetSchedulesByPlantingCycleRequest {
   string planting_cycle_id = 1 [ (buf.validate.field).string.uuid = true ];
+  Pagination pagination = 2;
 }
 
 message GetUpcomingSchedulesRequest {
   int32 days = 1 [ (buf.validate.field).int32 = {gte : 1, lte : 365} ];
+  Pagination pagination = 2;
 }
 
 message FertilizerScheduleResponse {
@@ -170,10 +186,10 @@ message FertilizerScheduleResponse {
 
 message ListFertilizerSchedulesResponse {
   repeated FertilizerScheduleResponse fertilizer_schedules = 1;
-  int32 total = 2;
-  int32 page = 3;
-  int32 limit = 4;
-  int32 total_pages = 5;
+  int64 total = 2;
+  int64 page = 3;
+  int64 page_size = 4;
+  int64 total_pages = 5;
 }
 
 
@@ -184,30 +200,32 @@ package fertilizer_type.v1;
 option go_package = "github.com/anhvanhoa/sf-proto/gen/fertilizer_type/v1;proto_fertilizer_type";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 import "buf/validate/validate.proto";
 
 // Fertilizer Type Service
 service FertilizerTypeService {
   // Basic CRUD operations
-  rpc CreateFertilizerType(CreateFertilizerTypeRequest)
-      returns (FertilizerTypeResponse);
-  rpc GetFertilizerType(GetFertilizerTypeRequest)
-      returns (FertilizerTypeResponse);
-  rpc UpdateFertilizerType(UpdateFertilizerTypeRequest)
-      returns (FertilizerTypeResponse);
-  rpc DeleteFertilizerType(DeleteFertilizerTypeRequest)
-      returns (google.protobuf.Empty);
-  rpc ListFertilizerTypes(ListFertilizerTypesRequest)
-      returns (ListFertilizerTypesResponse);
+  rpc CreateFertilizerType(CreateFertilizerTypeRequest) returns (FertilizerTypeResponse);
+  rpc GetFertilizerType(GetFertilizerTypeRequest) returns (FertilizerTypeResponse);
+  rpc UpdateFertilizerType(UpdateFertilizerTypeRequest) returns (FertilizerTypeResponse);
+  rpc DeleteFertilizerType(DeleteFertilizerTypeRequest) returns (DeleteFertilizerTypeResponse);
+  rpc ListFertilizerTypes(ListFertilizerTypesRequest) returns (ListFertilizerTypesResponse);
 
   // Special operations
-  rpc GetFertilizerTypesByType(GetFertilizerTypesByTypeRequest)
-      returns (ListFertilizerTypesResponse);
-  rpc GetExpiredFertilizers(google.protobuf.Empty)
-      returns (ListFertilizerTypesResponse);
-  rpc GetExpiringSoon(GetExpiringSoonRequest)
-      returns (ListFertilizerTypesResponse);
+  rpc GetFertilizerTypesByType(GetFertilizerTypesByTypeRequest) returns (ListFertilizerTypesResponse);
+  rpc GetExpiredFertilizers(Pagination) returns (ListFertilizerTypesResponse);
+  rpc GetExpiringSoon(GetExpiringSoonRequest) returns (ListFertilizerTypesResponse);
+}
+
+message Pagination {
+  int32 page = 1 [ (buf.validate.field).int32 = {gte : 1} ];
+  int32 page_size = 2 [ (buf.validate.field).int32 = {gte : 1, lte : 100} ];
+  string sort_by = 3 [ (buf.validate.field).string = {max_len : 50} ];
+  string sort_order = 4 [
+    (buf.validate.field).string.in = "asc",
+    (buf.validate.field).string.in = "desc"
+  ];
+  string search = 5 [ (buf.validate.field).string = {max_len : 255} ];
 }
 
 // Request/Response messages
@@ -304,6 +322,9 @@ message UpdateFertilizerTypeRequest {
 message DeleteFertilizerTypeRequest {
   string id = 1 [ (buf.validate.field).string.uuid = true ];
 }
+message DeleteFertilizerTypeResponse {
+  string message = 1;
+}
 
 message ListFertilizerTypesRequest {
   string name = 1 [ (buf.validate.field).string = {max_len : 255} ];
@@ -331,13 +352,7 @@ message ListFertilizerTypesRequest {
   google.protobuf.Timestamp expiry_date_to = 8;
   google.protobuf.Timestamp created_at_from = 9;
   google.protobuf.Timestamp created_at_to = 10;
-  int32 page = 11 [ (buf.validate.field).int32 = {gte : 1} ];
-  int32 limit = 12 [ (buf.validate.field).int32 = {gte : 1, lte : 100} ];
-  string sort_by = 13 [ (buf.validate.field).string = {max_len : 50} ];
-  string sort_order = 14 [
-    (buf.validate.field).string.in = "asc",
-    (buf.validate.field).string.in = "desc"
-  ];
+  Pagination pagination = 11;
 }
 
 message GetFertilizerTypesByTypeRequest {
@@ -348,10 +363,12 @@ message GetFertilizerTypesByTypeRequest {
     (buf.validate.field).string.in = "granular",
     (buf.validate.field).string.in = "powder"
   ];
+  Pagination pagination = 2;
 }
 
 message GetExpiringSoonRequest {
   int32 days = 1 [ (buf.validate.field).int32 = {gte : 1, lte : 365} ];
+  Pagination pagination = 2;
 }
 
 message FertilizerTypeResponse {
@@ -381,11 +398,12 @@ message FertilizerTypeResponse {
 
 message ListFertilizerTypesResponse {
   repeated FertilizerTypeResponse fertilizer_types = 1;
-  int32 total = 2;
-  int32 page = 3;
-  int32 limit = 4;
-  int32 total_pages = 5;
+  int64 total = 2;
+  int64 page = 3;
+  int64 page_size = 4;
+  int64 total_pages = 5;
 }
+
 
 syntax = "proto3";
 
@@ -394,7 +412,6 @@ package irrigation_log;
 option go_package = "fertigation-Service/proto/irrigation_log";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 import "buf/validate/validate.proto";
 
 // Irrigation Log Service
@@ -406,7 +423,7 @@ service IrrigationLogService {
   rpc UpdateIrrigationLog(UpdateIrrigationLogRequest)
       returns (IrrigationLogResponse);
   rpc DeleteIrrigationLog(DeleteIrrigationLogRequest)
-      returns (google.protobuf.Empty);
+      returns (DeleteIrrigationLogResponse);
   rpc ListIrrigationLogs(ListIrrigationLogsRequest)
       returns (ListIrrigationLogsResponse);
 }
@@ -470,6 +487,10 @@ message DeleteIrrigationLogRequest {
   string id = 1 [ (buf.validate.field).string.uuid = true ];
 }
 
+message DeleteIrrigationLogResponse {
+  string message = 1;
+}
+
 message ListIrrigationLogsRequest {
   string irrigation_schedule_id = 1 [ (buf.validate.field).string.uuid = true ];
   string device_id = 2 [ (buf.validate.field).string.uuid = true ];
@@ -521,15 +542,16 @@ message ListIrrigationLogsResponse {
   int32 total_pages = 5;
 }
 
+
 syntax = "proto3";
 
-package irrigation_schedule;
+package irrigation_schedule.v1;
 
-option go_package = "fertigation-Service/proto/irrigation_schedule";
+option go_package = "github.com/anhvanhoa/sf-proto/gen/irrigation_schedule/v1;proto_irrigation_schedule";
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
 import "buf/validate/validate.proto";
+import "common/v1/common.proto";
 
 // Irrigation Schedule Service
 service IrrigationScheduleService {
@@ -537,12 +559,12 @@ service IrrigationScheduleService {
   rpc CreateIrrigationSchedule(CreateIrrigationScheduleRequest) returns (IrrigationScheduleResponse);
   rpc GetIrrigationSchedule(GetIrrigationScheduleRequest) returns (IrrigationScheduleResponse);
   rpc UpdateIrrigationSchedule(UpdateIrrigationScheduleRequest) returns (IrrigationScheduleResponse);
-  rpc DeleteIrrigationSchedule(DeleteIrrigationScheduleRequest) returns (google.protobuf.Empty);
+  rpc DeleteIrrigationSchedule(DeleteIrrigationScheduleRequest) returns (common.CommonResponse);
   rpc ListIrrigationSchedules(ListIrrigationSchedulesRequest) returns (ListIrrigationSchedulesResponse);
   
   // Special operations
   rpc GetSchedulesByGrowingZone(GetSchedulesByGrowingZoneRequest) returns (ListIrrigationSchedulesResponse);
-  rpc GetActiveSchedules(google.protobuf.Empty) returns (ListIrrigationSchedulesResponse);
+  rpc GetActiveSchedules(common.PaginationRequest) returns (ListIrrigationSchedulesResponse);
   rpc GetSchedulesForExecution(GetSchedulesForExecutionRequest) returns (ListIrrigationSchedulesResponse);
 }
 
@@ -650,11 +672,13 @@ message ListIrrigationSchedulesRequest {
 
 message GetSchedulesByGrowingZoneRequest {
   string growing_zone_id = 1 [(buf.validate.field).string.uuid = true];
+  common.PaginationRequest pagination = 2;
 }
 
 message GetSchedulesForExecutionRequest {
   google.protobuf.Timestamp from_time = 1;
   google.protobuf.Timestamp to_time = 2;
+  common.PaginationRequest pagination = 3;
 }
 
 message IrrigationScheduleResponse {
@@ -679,8 +703,5 @@ message IrrigationScheduleResponse {
 
 message ListIrrigationSchedulesResponse {
   repeated IrrigationScheduleResponse irrigation_schedules = 1;
-  int32 total = 2;
-  int32 page = 3;
-  int32 limit = 4;
-  int32 total_pages = 5;
+  common.PaginationResponse pagination = 2;
 }

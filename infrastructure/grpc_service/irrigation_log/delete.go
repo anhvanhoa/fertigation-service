@@ -12,7 +12,6 @@ func (s *IrrigationLogService) DeleteIrrigationLog(ctx context.Context, req *irr
 		return nil, err
 	}
 	return &irrigationLogP.DeleteIrrigationLogResponse{
-		Success: true,
 		Message: "Irrigation log deleted successfully",
 	}, nil
 }

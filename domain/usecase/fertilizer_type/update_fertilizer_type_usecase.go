@@ -6,21 +6,21 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// UpdateFertilizerTypeUsecase handles updating fertilizer types
+type UpdateFertilizerTypeUsecaseI interface {
+	Execute(ctx context.Context, req *entity.UpdateFertilizerTypeRequest) (*entity.FertilizerType, error)
+}
+
 type UpdateFertilizerTypeUsecase struct {
 	fertilizerTypeRepo repository.FertilizerTypeRepository
 }
 
-// NewUpdateFertilizerTypeUsecase creates a new instance of UpdateFertilizerTypeUsecase
-func NewUpdateFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) *UpdateFertilizerTypeUsecase {
+func NewUpdateFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) UpdateFertilizerTypeUsecaseI {
 	return &UpdateFertilizerTypeUsecase{
 		fertilizerTypeRepo: fertilizerTypeRepo,
 	}
 }
 
-// Execute updates an existing fertilizer type
 func (u *UpdateFertilizerTypeUsecase) Execute(ctx context.Context, req *entity.UpdateFertilizerTypeRequest) (*entity.FertilizerType, error) {
-	// Validate request
 	if err := u.validateRequest(req); err != nil {
 		return nil, err
 	}

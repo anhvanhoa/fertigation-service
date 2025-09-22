@@ -6,6 +6,7 @@ import (
 	"fertigation-Service/domain/repository"
 	"time"
 
+	"github.com/anhvanhoa/service-core/common"
 	"github.com/go-pg/pg/v10"
 )
 
@@ -95,7 +96,7 @@ func (r *irrigationScheduleRepository) Delete(ctx context.Context, id string) er
 }
 
 // List retrieves irrigation schedules with filtering and pagination
-func (r *irrigationScheduleRepository) List(ctx context.Context, filter *entity.IrrigationScheduleFilter) (*entity.ListIrrigationSchedulesResponse, error) {
+func (r *irrigationScheduleRepository) List(ctx context.Context, filter *entity.IrrigationScheduleFilter) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
 	query := r.db.ModelContext(ctx, &schedules)
 
@@ -140,7 +141,7 @@ func (r *irrigationScheduleRepository) List(ctx context.Context, filter *entity.
 	// Get total count
 	total, err := query.Count()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	// Apply pagination and sorting
@@ -149,46 +150,23 @@ func (r *irrigationScheduleRepository) List(ctx context.Context, filter *entity.
 
 	err = query.Select()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-
-	// Convert to response format
-	var responses []entity.IrrigationScheduleResponse
-	for _, schedule := range schedules {
-		responses = append(responses, entity.IrrigationScheduleResponse{
-			ID:                schedule.ID,
-			GrowingZoneID:     schedule.GrowingZoneID,
-			PlantingCycleID:   schedule.PlantingCycleID,
-			ScheduleName:      schedule.ScheduleName,
-			IrrigationType:    schedule.IrrigationType,
-			StartTime:         schedule.StartTime,
-			DurationMinutes:   schedule.DurationMinutes,
-			Frequency:         schedule.Frequency,
-			DaysOfWeek:        schedule.DaysOfWeek,
-			WaterAmountLiters: schedule.WaterAmountLiters,
-			FertilizerMix:     schedule.FertilizerMix,
-			IsActive:          schedule.IsActive,
-			LastExecuted:      schedule.LastExecuted,
-			NextExecution:     schedule.NextExecution,
-			CreatedBy:         schedule.CreatedBy,
-			CreatedAt:         schedule.CreatedAt,
-			UpdatedAt:         schedule.UpdatedAt,
-		})
-	}
-
-	return &entity.ListIrrigationSchedulesResponse{
-		IrrigationSchedules: responses,
-		Total:               total,
-		Page:                filter.Page,
-		Limit:               filter.Limit,
-	}, nil
+	return schedules, int64(total), nil
 }
 
-// GetByGrowingZoneID retrieves irrigation schedules by growing zone ID
-func (r *irrigationScheduleRepository) GetByGrowingZoneID(ctx context.Context, growingZoneID string) ([]*entity.IrrigationSchedule, error) {
+func (r *irrigationScheduleRepository) GetByGrowingZoneID(ctx context.Context, growingZoneID string, filter *common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).Where("growing_zone_id = ?", growingZoneID).Select()
-	return schedules, err
+	q := r.db.ModelContext(ctx, &schedules).Where("growing_zone_id = ?", growingZoneID)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(filter.SortBy + " " + filter.SortOrder).
+		Limit(filter.PageSize).
+		Offset((filter.Page - 1) * filter.PageSize).
+		Select()
+	return schedules, int64(total), err
 }
 
 // GetByPlantingCycleID retrieves irrigation schedules by planting cycle ID
@@ -198,52 +176,96 @@ func (r *irrigationScheduleRepository) GetByPlantingCycleID(ctx context.Context,
 	return schedules, err
 }
 
-// GetActiveSchedules retrieves all active irrigation schedules
-func (r *irrigationScheduleRepository) GetActiveSchedules(ctx context.Context) ([]*entity.IrrigationSchedule, error) {
+func (r *irrigationScheduleRepository) GetActiveSchedules(ctx context.Context, isActive bool, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).Where("is_active = ?", true).Select()
-	return schedules, err
+	q := r.db.ModelContext(ctx, &schedules).Where("is_active = ?", isActive)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(request.SortBy + " " + request.SortOrder).
+		Limit(request.PageSize).
+		Offset((request.Page - 1) * request.PageSize).
+		Select()
+	return schedules, int64(total), err
 }
 
 // GetSchedulesByType retrieves irrigation schedules by irrigation type
-func (r *irrigationScheduleRepository) GetSchedulesByType(ctx context.Context, irrigationType string) ([]*entity.IrrigationSchedule, error) {
+func (r *irrigationScheduleRepository) GetSchedulesByType(ctx context.Context, irrigationType string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).Where("irrigation_type = ?", irrigationType).Select()
-	return schedules, err
+	q := r.db.ModelContext(ctx, &schedules).Where("irrigation_type = ?", irrigationType)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(request.SortBy + " " + request.SortOrder).
+		Limit(request.PageSize).
+		Offset((request.Page - 1) * request.PageSize).
+		Select()
+	return schedules, int64(total), err
 }
 
 // GetSchedulesByFrequency retrieves irrigation schedules by frequency
-func (r *irrigationScheduleRepository) GetSchedulesByFrequency(ctx context.Context, frequency string) ([]*entity.IrrigationSchedule, error) {
+func (r *irrigationScheduleRepository) GetSchedulesByFrequency(ctx context.Context, frequency string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).Where("frequency = ?", frequency).Select()
-	return schedules, err
+	q := r.db.ModelContext(ctx, &schedules).Where("frequency = ?", frequency)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(request.SortBy + " " + request.SortOrder).
+		Limit(request.PageSize).
+		Offset((request.Page - 1) * request.PageSize).
+		Select()
+	return schedules, int64(total), err
 }
 
 // GetSchedulesWithFertilizerMix retrieves irrigation schedules that include fertilizer mixing
-func (r *irrigationScheduleRepository) GetSchedulesWithFertilizerMix(ctx context.Context) ([]*entity.IrrigationSchedule, error) {
+func (r *irrigationScheduleRepository) GetSchedulesWithFertilizerMix(ctx context.Context, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).Where("fertilizer_mix = ?", true).Select()
-	return schedules, err
+	q := r.db.ModelContext(ctx, &schedules).Where("fertilizer_mix = ?", true)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(request.SortBy + " " + request.SortOrder).
+		Limit(request.PageSize).
+		Offset((request.Page - 1) * request.PageSize).
+		Select()
+	return schedules, int64(total), err
 }
 
 // GetSchedulesByCreator retrieves irrigation schedules created by a specific user
-func (r *irrigationScheduleRepository) GetSchedulesByCreator(ctx context.Context, createdBy string) ([]*entity.IrrigationSchedule, error) {
+func (r *irrigationScheduleRepository) GetSchedulesByCreator(ctx context.Context, createdBy string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).Where("created_by = ?", createdBy).Select()
-	return schedules, err
-}
-
-// GetSchedulesForExecution retrieves schedules that need to be executed within a time range
-func (r *irrigationScheduleRepository) GetSchedulesForExecution(ctx context.Context, from, to string) ([]*entity.IrrigationSchedule, error) {
-	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).
-		Where("next_execution >= ? AND next_execution <= ?", from, to).
-		Where("is_active = ?", true).
+	q := r.db.ModelContext(ctx, &schedules).Where("created_by = ?", createdBy)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(request.SortBy + " " + request.SortOrder).
+		Limit(request.PageSize).
+		Offset((request.Page - 1) * request.PageSize).
 		Select()
-	return schedules, err
+	return schedules, int64(total), err
 }
 
-// UpdateNextExecution updates the next execution time for a schedule
+func (r *irrigationScheduleRepository) GetSchedulesForExecution(ctx context.Context, from, to string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
+	var schedules []*entity.IrrigationSchedule
+	q := r.db.ModelContext(ctx, &schedules).
+		Where("next_execution >= ? AND next_execution <= ?", from, to).
+		Where("is_active = ?", true)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(request.SortBy + " " + request.SortOrder).
+		Limit(request.PageSize).
+		Offset((request.Page - 1) * request.PageSize).
+		Select()
+	return schedules, int64(total), err
+}
+
 func (r *irrigationScheduleRepository) UpdateNextExecution(ctx context.Context, id string, nextExecution string) error {
 	_, err := r.db.ModelContext(ctx, (*entity.IrrigationSchedule)(nil)).
 		Set("next_execution = ?", nextExecution).
@@ -253,7 +275,6 @@ func (r *irrigationScheduleRepository) UpdateNextExecution(ctx context.Context, 
 	return err
 }
 
-// UpdateLastExecuted updates the last executed time for a schedule
 func (r *irrigationScheduleRepository) UpdateLastExecuted(ctx context.Context, id string, lastExecuted string) error {
 	_, err := r.db.ModelContext(ctx, (*entity.IrrigationSchedule)(nil)).
 		Set("last_executed = ?", lastExecuted).
@@ -263,7 +284,6 @@ func (r *irrigationScheduleRepository) UpdateLastExecuted(ctx context.Context, i
 	return err
 }
 
-// Count returns the total number of irrigation schedules matching the filter
 func (r *irrigationScheduleRepository) Count(ctx context.Context, filter *entity.IrrigationScheduleFilter) (int, error) {
 	query := r.db.ModelContext(ctx, (*entity.IrrigationSchedule)(nil))
 
@@ -308,7 +328,6 @@ func (r *irrigationScheduleRepository) Count(ctx context.Context, filter *entity
 	return query.Count()
 }
 
-// CheckScheduleNameExists checks if a schedule name already exists for a specific growing zone
 func (r *irrigationScheduleRepository) CheckScheduleNameExists(ctx context.Context, scheduleName, growingZoneID string) (bool, error) {
 	count, err := r.db.ModelContext(ctx, (*entity.IrrigationSchedule)(nil)).
 		Where("schedule_name = ? AND growing_zone_id = ?", scheduleName, growingZoneID).
@@ -316,16 +335,21 @@ func (r *irrigationScheduleRepository) CheckScheduleNameExists(ctx context.Conte
 	return count > 0, err
 }
 
-// GetSchedulesByDateRange retrieves schedules within a specific date range
-func (r *irrigationScheduleRepository) GetSchedulesByDateRange(ctx context.Context, from, to string) ([]*entity.IrrigationSchedule, error) {
+func (r *irrigationScheduleRepository) GetSchedulesByDateRange(ctx context.Context, from, to string, request common.Pagination) ([]*entity.IrrigationSchedule, int64, error) {
 	var schedules []*entity.IrrigationSchedule
-	err := r.db.ModelContext(ctx, &schedules).
-		Where("created_at >= ? AND created_at <= ?", from, to).
+	q := r.db.ModelContext(ctx, &schedules).
+		Where("created_at >= ? AND created_at <= ?", from, to)
+	total, err := q.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	err = q.Order(request.SortBy + " " + request.SortOrder).
+		Limit(request.PageSize).
+		Offset((request.Page - 1) * request.PageSize).
 		Select()
-	return schedules, err
+	return schedules, int64(total), err
 }
 
-// BulkUpdateStatus updates the status of multiple schedules
 func (r *irrigationScheduleRepository) BulkUpdateStatus(ctx context.Context, ids []string, isActive bool) error {
 	_, err := r.db.ModelContext(ctx, (*entity.IrrigationSchedule)(nil)).
 		Set("is_active = ?", isActive).
@@ -335,7 +359,6 @@ func (r *irrigationScheduleRepository) BulkUpdateStatus(ctx context.Context, ids
 	return err
 }
 
-// GetScheduleStatistics returns statistics about irrigation schedules
 func (r *irrigationScheduleRepository) GetScheduleStatistics(ctx context.Context) (*entity.IrrigationScheduleStatistics, error) {
 	stats := &entity.IrrigationScheduleStatistics{}
 

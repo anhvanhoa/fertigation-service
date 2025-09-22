@@ -5,25 +5,25 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// DeleteFertilizerTypeUsecase handles deleting fertilizer types
+type DeleteFertilizerTypeUsecaseI interface {
+	Execute(ctx context.Context, id string) error
+}
+
 type DeleteFertilizerTypeUsecase struct {
 	fertilizerTypeRepo repository.FertilizerTypeRepository
 }
 
-// NewDeleteFertilizerTypeUsecase creates a new instance of DeleteFertilizerTypeUsecase
-func NewDeleteFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) *DeleteFertilizerTypeUsecase {
+func NewDeleteFertilizerTypeUsecase(fertilizerTypeRepo repository.FertilizerTypeRepository) DeleteFertilizerTypeUsecaseI {
 	return &DeleteFertilizerTypeUsecase{
 		fertilizerTypeRepo: fertilizerTypeRepo,
 	}
 }
 
-// Execute deletes a fertilizer type by ID
 func (u *DeleteFertilizerTypeUsecase) Execute(ctx context.Context, id string) error {
 	if id == "" {
 		return ErrInvalidID
 	}
 
-	// Check if fertilizer type exists
 	existingFertilizerType, err := u.fertilizerTypeRepo.GetByID(ctx, id)
 	if err != nil {
 		return err

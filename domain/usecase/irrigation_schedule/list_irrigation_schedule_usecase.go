@@ -4,22 +4,28 @@ import (
 	"context"
 	"fertigation-Service/domain/entity"
 	"fertigation-Service/domain/repository"
+
+	"github.com/anhvanhoa/service-core/common"
+	"github.com/anhvanhoa/service-core/utils"
 )
 
-// ListIrrigationScheduleUsecase handles listing irrigation schedules
-type ListIrrigationScheduleUsecase struct {
-	irrigationScheduleRepo repository.IrrigationScheduleRepository
+type ListIrrigationScheduleUsecaseI interface {
+	Execute(ctx context.Context, filter *entity.IrrigationScheduleFilter) (common.PaginationResult[*entity.IrrigationSchedule], error)
 }
 
-// NewListIrrigationScheduleUsecase creates a new instance of ListIrrigationScheduleUsecase
-func NewListIrrigationScheduleUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository) *ListIrrigationScheduleUsecase {
+type ListIrrigationScheduleUsecase struct {
+	irrigationScheduleRepo repository.IrrigationScheduleRepository
+	helper                 utils.Helper
+}
+
+func NewListIrrigationScheduleUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository, helper utils.Helper) ListIrrigationScheduleUsecaseI {
 	return &ListIrrigationScheduleUsecase{
 		irrigationScheduleRepo: irrigationScheduleRepo,
+		helper:                 helper,
 	}
 }
 
-// Execute retrieves a list of irrigation schedules with filtering and pagination
-func (u *ListIrrigationScheduleUsecase) Execute(ctx context.Context, filter *entity.IrrigationScheduleFilter) (*entity.ListIrrigationSchedulesResponse, error) {
+func (u *ListIrrigationScheduleUsecase) Execute(ctx context.Context, filter *entity.IrrigationScheduleFilter) (common.PaginationResult[*entity.IrrigationSchedule], error) {
 	// Set default pagination values
 	if filter.Page <= 0 {
 		filter.Page = 1
@@ -31,7 +37,6 @@ func (u *ListIrrigationScheduleUsecase) Execute(ctx context.Context, filter *ent
 		filter.Limit = 100
 	}
 
-	// Set default sort values
 	if filter.SortBy == "" {
 		filter.SortBy = "created_at"
 	}
@@ -39,16 +44,16 @@ func (u *ListIrrigationScheduleUsecase) Execute(ctx context.Context, filter *ent
 		filter.SortOrder = "desc"
 	}
 
-	// Get irrigation schedules from repository
-	response, err := u.irrigationScheduleRepo.List(ctx, filter)
+	response, total, err := u.irrigationScheduleRepo.List(ctx, filter)
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*entity.IrrigationSchedule]{}, err
 	}
 
-	// Calculate total pages
-	if response.Total > 0 {
-		response.TotalPages = (response.Total + filter.Limit - 1) / filter.Limit
-	}
-
-	return response, nil
+	return common.PaginationResult[*entity.IrrigationSchedule]{
+		Data:       response,
+		Total:      total,
+		Page:       filter.Page,
+		PageSize:   filter.Limit,
+		TotalPages: u.helper.CalculateTotalPages(total, int64(filter.Limit)),
+	}, nil
 }

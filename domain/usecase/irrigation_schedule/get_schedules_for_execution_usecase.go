@@ -5,41 +5,53 @@ import (
 	"fertigation-Service/domain/entity"
 	"fertigation-Service/domain/repository"
 	"time"
+
+	"github.com/anhvanhoa/service-core/common"
+	"github.com/anhvanhoa/service-core/utils"
 )
 
-// GetSchedulesForExecutionUsecase handles retrieving schedules that need to be executed
-type GetSchedulesForExecutionUsecase struct {
-	irrigationScheduleRepo repository.IrrigationScheduleRepository
+type GetSchedulesForExecutionUsecaseI interface {
+	Execute(ctx context.Context, from, to string, request common.Pagination) (common.PaginationResult[*entity.IrrigationSchedule], error)
 }
 
-// NewGetSchedulesForExecutionUsecase creates a new instance of GetSchedulesForExecutionUsecase
-func NewGetSchedulesForExecutionUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository) *GetSchedulesForExecutionUsecase {
+type GetSchedulesForExecutionUsecase struct {
+	irrigationScheduleRepo repository.IrrigationScheduleRepository
+	helper                 utils.Helper
+}
+
+func NewGetSchedulesForExecutionUsecase(irrigationScheduleRepo repository.IrrigationScheduleRepository, helper utils.Helper) GetSchedulesForExecutionUsecaseI {
 	return &GetSchedulesForExecutionUsecase{
 		irrigationScheduleRepo: irrigationScheduleRepo,
+		helper:                 helper,
 	}
 }
 
-// Execute retrieves schedules that need to be executed within a time range
-func (u *GetSchedulesForExecutionUsecase) Execute(ctx context.Context, from, to string) ([]*entity.IrrigationSchedule, error) {
+func (u *GetSchedulesForExecutionUsecase) Execute(ctx context.Context, from, to string, request common.Pagination) (common.PaginationResult[*entity.IrrigationSchedule], error) {
 	if from == "" || to == "" {
-		return nil, ErrInvalidTimeRange
+		return common.PaginationResult[*entity.IrrigationSchedule]{}, ErrInvalidTimeRange
 	}
 
 	// Validate time format
 	_, err := time.Parse(time.RFC3339, from)
 	if err != nil {
-		return nil, ErrInvalidTimeFormat
+		return common.PaginationResult[*entity.IrrigationSchedule]{}, ErrInvalidTimeFormat
 	}
 
 	_, err = time.Parse(time.RFC3339, to)
 	if err != nil {
-		return nil, ErrInvalidTimeFormat
+		return common.PaginationResult[*entity.IrrigationSchedule]{}, ErrInvalidTimeFormat
 	}
 
-	schedules, err := u.irrigationScheduleRepo.GetSchedulesForExecution(ctx, from, to)
+	schedules, total, err := u.irrigationScheduleRepo.GetSchedulesForExecution(ctx, from, to, request)
 	if err != nil {
-		return nil, err
+		return common.PaginationResult[*entity.IrrigationSchedule]{}, err
 	}
 
-	return schedules, nil
+	return common.PaginationResult[*entity.IrrigationSchedule]{
+		Total:      total,
+		Page:       request.Page,
+		PageSize:   request.PageSize,
+		Data:       schedules,
+		TotalPages: u.helper.CalculateTotalPages(total, int64(request.PageSize)),
+	}, nil
 }

@@ -6,21 +6,24 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// CreateIrrigationLogUsecase handles the creation of irrigation logs
+type CreateIrrigationLogUsecaseI interface {
+	Execute(ctx context.Context, req *entity.CreateIrrigationLogRequest) (*entity.IrrigationLog, error)
+}
+
 type CreateIrrigationLogUsecase struct {
 	irrigationLogRepo repository.IrrigationLogRepository
 }
 
-// NewCreateIrrigationLogUsecase creates a new instance of CreateIrrigationLogUsecase
-func NewCreateIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) *CreateIrrigationLogUsecase {
+func NewCreateIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) CreateIrrigationLogUsecaseI {
 	return &CreateIrrigationLogUsecase{
 		irrigationLogRepo: irrigationLogRepo,
 	}
 }
 
-// Execute creates a new irrigation log
 func (u *CreateIrrigationLogUsecase) Execute(ctx context.Context, req *entity.CreateIrrigationLogRequest) (*entity.IrrigationLog, error) {
-	// Validate request
+	if err := u.validateRequest(req); err != nil {
+		return nil, err
+	}
 	if err := u.validateRequest(req); err != nil {
 		return nil, err
 	}

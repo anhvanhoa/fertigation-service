@@ -6,19 +6,20 @@ import (
 	"fertigation-Service/domain/repository"
 )
 
-// GetIrrigationLogUsecase handles retrieving irrigation logs
+type GetIrrigationLogUsecaseI interface {
+	Execute(ctx context.Context, id string) (*entity.IrrigationLog, error)
+}
+
 type GetIrrigationLogUsecase struct {
 	irrigationLogRepo repository.IrrigationLogRepository
 }
 
-// NewGetIrrigationLogUsecase creates a new instance of GetIrrigationLogUsecase
-func NewGetIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) *GetIrrigationLogUsecase {
+func NewGetIrrigationLogUsecase(irrigationLogRepo repository.IrrigationLogRepository) GetIrrigationLogUsecaseI {
 	return &GetIrrigationLogUsecase{
 		irrigationLogRepo: irrigationLogRepo,
 	}
 }
 
-// Execute retrieves an irrigation log by ID
 func (u *GetIrrigationLogUsecase) Execute(ctx context.Context, id string) (*entity.IrrigationLog, error) {
 	if id == "" {
 		return nil, ErrInvalidID
